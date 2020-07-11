@@ -31,7 +31,7 @@ class SC_Discogs:
 
         driver = webdriver.Chrome(options=self.options)
 
-        df = pd.read_excel("sc_inputs - Copy.xlsx")
+        df = pd.read_excel("User_Inputs.xlsx")
         df = df['Artists_To_Search']
         df.dropna(inplace=True)
 
@@ -81,7 +81,7 @@ class SC_Discogs:
 
         driver = webdriver.Chrome(options=self.options)
 
-        df = pd.read_excel("sc_inputs - Copy.xlsx")
+        df = pd.read_excel("User_Inputs.xlsx")
         df = df['Artists&Podcast_Pages']
         df.dropna(inplace=True)
 
@@ -135,7 +135,7 @@ class SC_Discogs:
 
         mix_name = []
 
-        df_mixes = pd.read_excel("sc_inputs - Copy.xlsx")
+        df_mixes = pd.read_excel("User_Inputs.xlsx")
         df_mixes = df_mixes['Unique_Mixes']
 
         for mix_url in df_mixes:
@@ -225,7 +225,7 @@ class SC_Discogs:
 
         driver = webdriver.Chrome(options=self.options)
 
-        df = pd.read_excel('sc_inputs - Copy.xlsx')
+        df = pd.read_excel('User_Inputs.xlsx')
         df = df['YT_Artist_Searches']
         df.dropna(inplace=True)
 
@@ -482,5 +482,4 @@ if __name__ == '__main__':
 
 
 #driver on peut le mettre dans init?
-#if comments_db not exist create one
 #rajouter liens bandcamp/junodownload?
