@@ -179,7 +179,7 @@ class SC_Discogs:
 
             driver.get(url)
 
-            time.sleep(5)
+            time.sleep(2)
 
             SCROLL_PAUSE_TIME = 1.2
 
