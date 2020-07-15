@@ -31,7 +31,7 @@ class SC_Discogs:
 
         driver = webdriver.Chrome(options=self.options)
 
-        df = pd.read_excel("User_Inputs.xlsx")
+        df = pd.read_excel("User_Inputs1.xlsx")
         df = df['Artists_To_Search']
         df.dropna(inplace=True)
 
@@ -44,10 +44,8 @@ class SC_Discogs:
 
                 driver.get('https://soundcloud.com')
 
-                time.sleep(2)
-
                 inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div[2]/div/div/div[2]/div/div[1]/span/span/form/input")))
-                time.sleep(0.5)
+                # time.sleep(0.5)
                 inputElement.send_keys(artist)
                 inputElement.send_keys(Keys.ENTER)
                 time.sleep(0.5)
@@ -82,7 +80,7 @@ class SC_Discogs:
 
         driver = webdriver.Chrome(options=self.options)
 
-        df = pd.read_excel("User_Inputs.xlsx")
+        df = pd.read_excel("User_Inputs1.xlsx")
         df = df['Artists&Podcast_Pages']
         df.dropna(inplace=True)
 
@@ -94,8 +92,6 @@ class SC_Discogs:
             if page_url != None and pd.isna(page_url) == False:
 
                 driver.get(page_url)
-
-                time.sleep(2)
 
                 SCROLL_PAUSE_TIME = 1.2
 
@@ -136,7 +132,7 @@ class SC_Discogs:
 
         mix_name = []
 
-        df_mixes = pd.read_excel("User_Inputs.xlsx")
+        df_mixes = pd.read_excel("User_Inputs1.xlsx")
         df_mixes = df_mixes['Unique_Mixes']
 
         for mix_url in df_mixes:
@@ -144,8 +140,6 @@ class SC_Discogs:
             if mix_url != None and pd.isna(mix_url) == False:
 
                 driver.get(mix_url)
-
-                time.sleep(2)
 
                 soup = bs.BeautifulSoup(driver.page_source, 'lxml')
 
@@ -179,8 +173,6 @@ class SC_Discogs:
         for url in df['MixURL']:
 
             driver.get(url)
-
-            time.sleep(2)
 
             SCROLL_PAUSE_TIME = 1.2
 
@@ -226,7 +218,7 @@ class SC_Discogs:
 
         driver = webdriver.Chrome(options=self.options)
 
-        df = pd.read_excel('User_Inputs.xlsx')
+        df = pd.read_excel('User_Inputs1.xlsx')
         df = df['YT_Artist_Searches']
         df.dropna(inplace=True)
 
@@ -239,8 +231,6 @@ class SC_Discogs:
         for artist in df:
 
             driver.get("https://www.youtube.com/results?search_query=" + artist + "&sp=CAI%253D")
-
-            time.sleep(1)
 
             driver.execute_script('window.scrollTo(1, 100000);')
 
@@ -359,7 +349,7 @@ class SC_Discogs:
             inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "q")))
             inputElement.send_keys(comment)
             inputElement.send_keys(Keys.ENTER)
-            time.sleep(0.5)
+            # time.sleep(0.5)
             soup = bs.BeautifulSoup(driver.page_source, 'lxml')
             for item in soup.find_all('div', class_='r'):
                 if 'discogs' in item.find('a')['href']:
