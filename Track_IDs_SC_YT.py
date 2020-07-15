@@ -355,7 +355,7 @@ class SC_Discogs:
         for count,comment in enumerate(df_mid['Comment'],1):
 
             driver.get('https://www.google.com')
-            time.sleep(1)
+            # time.sleep(1)
             inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "q")))
             inputElement.send_keys(comment)
             inputElement.send_keys(Keys.ENTER)
