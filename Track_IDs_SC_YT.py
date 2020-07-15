@@ -67,15 +67,16 @@ class SC_Discogs:
                         track_titles.append(item.text.strip())
                         track_urls.append('https://www.soundcloud.com' + item['href'])
 
-            df_artists = pd.DataFrame(zip(track_titles,track_urls),columns=['Mix','MixURL'])
-            df_artists = df_artists[df_artists['Mix'].str.contains(artist)]
+        df_artists = pd.DataFrame(zip(track_titles,track_urls),columns=['Mix','MixURL'])
 
-            driver.close()
-            driver.quit()
+        driver.close()
+        driver.quit()
 
-            print('Done with Soundcloud Artists!')
+        print('Done with Soundcloud Artists!')
 
-            return df_artists
+        df_artists.to_csv('esh.csv')
+
+        return df_artists
 
     def sc_search_pages(self):
 
@@ -471,14 +472,16 @@ class SC_Discogs:
 if __name__ == '__main__':
 
     s = SC_Discogs()
-    df_sc = s.concat_3_sc_df(s.sc_search_artists(),s.sc_search_pages(),s.sc_grab_mixes())
-    df_sc_comments = s.sc_get_comments(df_sc)
-    df_yt = s.yt_get_comments()
-    df_sc_yt = s.sc_yt_df_concat(df_sc_comments,df_yt)
-    clean_final_df = s.sc_yt_clean_comments()
-    discogs_url = s.sc_get_discogs_url()
-    discogs_price = s.sc_get_discogs_prices()
-    s.xls_export(discogs_price)
+    # df_sc = s.concat_3_sc_df(s.sc_search_artists(),s.sc_search_pages(),s.sc_grab_mixes())
+    # df_sc_comments = s.sc_get_comments(df_sc)
+    # df_yt = s.yt_get_comments()
+    # df_sc_yt = s.sc_yt_df_concat(df_sc_comments,df_yt)
+    # clean_final_df = s.sc_yt_clean_comments()
+    # discogs_url = s.sc_get_discogs_url()
+    # discogs_price = s.sc_get_discogs_prices()
+    # s.xls_export(discogs_price)
+
+    s.sc_search_artists()
 
 
 #driver on peut le mettre dans init?
