@@ -11,6 +11,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import StaleElementReferenceException
 import re
 import xlsxwriter
 import pandas.io.formats.excel
@@ -31,7 +33,7 @@ class SC_Discogs:
 
         driver = webdriver.Chrome(options=self.options)
 
-        df = pd.read_excel("User_Inputs1.xlsx")
+        df = pd.read_excel("User_Inputs.xlsx")
         df = df['Artists_To_Search']
         df.dropna(inplace=True)
 
@@ -80,7 +82,7 @@ class SC_Discogs:
 
         driver = webdriver.Chrome(options=self.options)
 
-        df = pd.read_excel("User_Inputs1.xlsx")
+        df = pd.read_excel("User_Inputs.xlsx")
         df = df['Artists&Podcast_Pages']
         df.dropna(inplace=True)
 
@@ -132,7 +134,7 @@ class SC_Discogs:
 
         mix_name = []
 
-        df_mixes = pd.read_excel("User_Inputs1.xlsx")
+        df_mixes = pd.read_excel("User_Inputs.xlsx")
         df_mixes = df_mixes['Unique_Mixes']
 
         for mix_url in df_mixes:
@@ -218,7 +220,7 @@ class SC_Discogs:
 
         driver = webdriver.Chrome(options=self.options)
 
-        df = pd.read_excel('User_Inputs1.xlsx')
+        df = pd.read_excel('User_Inputs.xlsx')
         df = df['YT_Artist_Searches']
         df.dropna(inplace=True)
 
@@ -351,10 +353,15 @@ class SC_Discogs:
             inputElement.send_keys(Keys.ENTER)
             # time.sleep(0.5)
             soup = bs.BeautifulSoup(driver.page_source, 'lxml')
-            for item in soup.find_all('div', class_='r'):
-                if 'discogs' in item.find('a')['href']:
-                    if 'master' in item.find('a')['href'] or 'release' in item.find('a')['href']:
-                        links_dict[comment] = item.find('a')['href']
+            try:
+                for item in soup.find_all('div', class_='r'):
+                    if 'discogs' in item.find('a')['href']:
+                        if 'master' in item.find('a')['href'] or 'release' in item.find('a')['href']:
+                            links_dict[comment] = item.find('a')['href']
+            except (NoSuchElementException,StaleElementReferenceException):
+                print("Error in finding" + comment + "URL")
+                pass
+
             if count % 10 == 0:
                 print(count, 'comments out of', len(df_mid['Comment']),'at:',time.strftime("%d-%m-%Y %H:%M:%S"))
             # time.sleep(0.5)
