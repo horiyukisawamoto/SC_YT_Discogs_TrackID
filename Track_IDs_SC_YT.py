@@ -359,7 +359,7 @@ class SC_Discogs:
                         if 'master' in item.find('a')['href'] or 'release' in item.find('a')['href']:
                             links_dict[comment] = item.find('a')['href']
             except (NoSuchElementException,StaleElementReferenceException):
-                print("Error in finding" + comment + "URL")
+                print("Error in finding comment number" + count + "'s URL")
                 pass
 
             if count % 10 == 0:
