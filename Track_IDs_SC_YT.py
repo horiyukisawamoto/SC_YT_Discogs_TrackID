@@ -3,6 +3,7 @@ import pandas as pd
 import bs4 as bs
 import requests
 import time
+import numpy as np
 import pandas as pd
 from datetime import datetime as dt
 from selenium.webdriver.common.keys import Keys
@@ -339,32 +340,32 @@ class SC_Discogs:
 
         df_mid = pd.concat([df,df_db],axis=0)
         df_mid = df_mid[df_mid['DiscogsURL']=='-']
+        df_mid['Comment'] = df_mid['Comment'].replace(r'^\s*$', np.nan, regex=True).replace('\n',' ', regex=True)
         df_mid.drop_duplicates(keep=False,inplace=True)
         df_mid.dropna(inplace=True)
 
         links_dict = {}
 
         for count,comment in enumerate(df_mid['Comment'],1):
-
-            driver.get('https://www.google.com')
-            # time.sleep(1)
-            inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "q")))
-            inputElement.send_keys(comment)
-            inputElement.send_keys(Keys.ENTER)
-            # time.sleep(0.5)
-            soup = bs.BeautifulSoup(driver.page_source, 'lxml')
             try:
+                driver.get('https://www.google.com')
+                # time.sleep(1)
+                inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "q")))
+                inputElement.send_keys(comment)
+                inputElement.send_keys(Keys.ENTER)
+                # time.sleep(0.5)
+                soup = bs.BeautifulSoup(driver.page_source, 'lxml')
+
                 for item in soup.find_all('div', class_='r'):
                     if 'discogs' in item.find('a')['href']:
                         if 'master' in item.find('a')['href'] or 'release' in item.find('a')['href']:
                             links_dict[comment] = item.find('a')['href']
-            except (NoSuchElementException,StaleElementReferenceException):
-                print("Error in finding comment number" + count + "'s URL")
-                pass
-
-            if count % 10 == 0:
-                print(count, 'comments out of', len(df_mid['Comment']),'at:',time.strftime("%d-%m-%Y %H:%M:%S"))
-            # time.sleep(0.5)
+                if count % 10 == 0:
+                    print(count, 'comments out of', len(df_mid['Comment']),'at:',time.strftime("%d-%m-%Y %H:%M:%S"))
+                # time.sleep(0.5)
+            except (NoSuchElementException, StaleElementReferenceException) as e:
+                print("Error in finding comment number " + str(count) + "'s URL")
+                continue
 
         df_mid['DiscogsURL'] = df_mid['Comment'].apply(lambda x: links_dict.get(x) if links_dict.get(x) is not None else "-")
 
@@ -469,17 +470,14 @@ class SC_Discogs:
 if __name__ == '__main__':
 
     s = SC_Discogs()
-    df_sc = s.concat_3_sc_df(s.sc_search_artists(),s.sc_search_pages(),s.sc_grab_mixes())
-    df_sc_comments = s.sc_get_comments(df_sc)
-    df_yt = s.yt_get_comments()
-    df_sc_yt = s.sc_yt_df_concat(df_sc_comments,df_yt)
-    clean_final_df = s.sc_yt_clean_comments()
+    # df_sc = s.concat_3_sc_df(s.sc_search_artists(),s.sc_search_pages(),s.sc_grab_mixes())
+    # df_sc_comments = s.sc_get_comments(df_sc)
+    # df_yt = s.yt_get_comments()
+    # df_sc_yt = s.sc_yt_df_concat(df_sc_comments,df_yt)
+    # clean_final_df = s.sc_yt_clean_comments()
     discogs_url = s.sc_get_discogs_url()
     discogs_price = s.sc_get_discogs_prices()
     s.xls_export(discogs_price)
-
-    s.sc_search_artists()
-
 
 #driver on peut le mettre dans init?
 #rajouter liens bandcamp/junodownload?
