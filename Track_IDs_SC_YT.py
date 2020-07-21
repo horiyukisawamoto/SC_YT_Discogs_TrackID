@@ -470,11 +470,11 @@ class SC_Discogs:
 if __name__ == '__main__':
 
     s = SC_Discogs()
-    # df_sc = s.concat_3_sc_df(s.sc_search_artists(),s.sc_search_pages(),s.sc_grab_mixes())
-    # df_sc_comments = s.sc_get_comments(df_sc)
-    # df_yt = s.yt_get_comments()
-    # df_sc_yt = s.sc_yt_df_concat(df_sc_comments,df_yt)
-    # clean_final_df = s.sc_yt_clean_comments()
+    df_sc = s.concat_3_sc_df(s.sc_search_artists(),s.sc_search_pages(),s.sc_grab_mixes())
+    df_sc_comments = s.sc_get_comments(df_sc)
+    df_yt = s.yt_get_comments()
+    df_sc_yt = s.sc_yt_df_concat(df_sc_comments,df_yt)
+    clean_final_df = s.sc_yt_clean_comments()
     discogs_url = s.sc_get_discogs_url()
     discogs_price = s.sc_get_discogs_prices()
     s.xls_export(discogs_price)
