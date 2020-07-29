@@ -75,8 +75,6 @@ class SC_Discogs:
 
         print('Done with Soundcloud Artists!')
 
-        df_artists.to_csv('esh.csv')
-
         return df_artists
 
     def sc_search_pages(self):
