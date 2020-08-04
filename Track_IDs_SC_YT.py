@@ -233,7 +233,7 @@ class SC_Discogs:
 
             driver.get("https://www.youtube.com/results?search_query=" + artist + "&sp=CAI%253D")
 
-            driver.execute_script('window.scrollTo(1, 100000);')
+            driver.execute_script('window.scrollTo(1, 150000);')
 
             time.sleep(1.5)
 
@@ -318,6 +318,8 @@ class SC_Discogs:
         df = df[df['Comment'].apply(lambda x: len(str(x)) > 5)]
         df = df[~df['Comment'].str.contains('id|ID|Id|iD')]
         df['Comment'] = df['Comment'].apply(lambda x: re.sub(r"@.*?:","", str(x)))
+        df['Comment'] = df['Comment'].apply(lambda x: re.sub(r"@[A-Za-z0-9]+","", str(x)))
+        df['Comment'] = df['Comment'].replace(r'^\s*$', np.nan, regex=True).replace('\n',' ', regex=True)
 
         df["DiscogsURL"] = "-"
 
@@ -338,7 +340,6 @@ class SC_Discogs:
 
         df_mid = pd.concat([df,df_db],axis=0)
         df_mid = df_mid[df_mid['DiscogsURL']=='-']
-        df_mid['Comment'] = df_mid['Comment'].replace(r'^\s*$', np.nan, regex=True).replace('\n',' ', regex=True)
         df_mid.drop_duplicates(keep=False,inplace=True)
         df_mid.dropna(inplace=True)
 
@@ -347,23 +348,23 @@ class SC_Discogs:
         for count,comment in enumerate(df_mid['Comment'],1):
             try:
                 driver.get('https://www.google.com')
-                # time.sleep(1)
                 inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "q")))
                 inputElement.send_keys(comment)
                 inputElement.send_keys(Keys.ENTER)
-                # time.sleep(0.5)
+                time.sleep(0.7)
                 soup = bs.BeautifulSoup(driver.page_source, 'lxml')
 
                 for item in soup.find_all('div', class_='r'):
                     if 'discogs' in item.find('a')['href']:
                         if 'master' in item.find('a')['href'] or 'release' in item.find('a')['href']:
                             links_dict[comment] = item.find('a')['href']
-                if count % 10 == 0:
-                    print(count, 'comments out of', len(df_mid['Comment']),'at:',time.strftime("%d-%m-%Y %H:%M:%S"))
-                # time.sleep(0.5)
-            except (NoSuchElementException, StaleElementReferenceException) as e:
+            except (NoSuchElementException, StaleElementReferenceException,TypeError) as e:
+                print(e)
                 print("Error in finding comment number " + str(count) + "'s URL")
                 continue
+
+            if count % 10 == 0:
+                print(count, 'comments out of', len(df_mid['Comment']),'at:',time.strftime("%d-%m-%Y %H:%M:%S"))
 
         df_mid['DiscogsURL'] = df_mid['Comment'].apply(lambda x: links_dict.get(x) if links_dict.get(x) is not None else "-")
 
