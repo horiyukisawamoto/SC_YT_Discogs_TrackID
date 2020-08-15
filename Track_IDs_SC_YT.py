@@ -14,6 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException
 import re
 import xlsxwriter
 import pandas.io.formats.excel
@@ -48,7 +49,6 @@ class SC_Discogs:
                 driver.get('https://soundcloud.com')
 
                 inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[2]/div[2]/div/div/div[2]/div/div[1]/span/span/form/input")))
-                # time.sleep(0.5)
                 inputElement.send_keys(artist)
                 inputElement.send_keys(Keys.ENTER)
                 time.sleep(0.5)
@@ -58,7 +58,7 @@ class SC_Discogs:
 
                 while height < 30000:
                     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    time.sleep(0.7)
+                    time.sleep(1.7)
                     height += driver.execute_script("return document.body.scrollHeight")
 
                 soup = bs.BeautifulSoup(driver.page_source, 'lxml')
@@ -94,7 +94,7 @@ class SC_Discogs:
 
                 driver.get(page_url)
 
-                SCROLL_PAUSE_TIME = 1.2
+                SCROLL_PAUSE_TIME = 1.7
 
                 # Get scroll height
                 last_height = driver.execute_script("return document.body.scrollHeight")
@@ -175,36 +175,45 @@ class SC_Discogs:
 
             driver.get(url)
 
-            SCROLL_PAUSE_TIME = 1.2
+            inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[4]/section/div/div[3]/div[3]/div/div[3]/span[2]")))
 
-            # Get scroll height
-            last_height = driver.execute_script("return document.body.scrollHeight")
+            SCROLL_PAUSE_TIME = 1.7
 
-            while True:
-                # Scroll down to bottom
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            #exclude tracks that are below 25 mins
+            try:
+                if (len(inputElement.text) <= 5 and dt.strptime(inputElement.text, '%M:%S').time() > dt.strptime("25:00", '%M:%S').time()) or len(inputElement.text) > 5:
 
-                # Wait to load page
-                time.sleep(SCROLL_PAUSE_TIME)
+                    # Get scroll height
+                    last_height = driver.execute_script("return document.body.scrollHeight")
 
-                # Calculate new scroll height and compare with last scroll height
-                new_height = driver.execute_script("return document.body.scrollHeight")
-                if new_height == last_height:
-                    break
-                last_height = new_height
+                    while True:
+                        # Scroll down to bottom
+                        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
-            soup =  bs.BeautifulSoup(driver.page_source, 'lxml')
+                        # Wait to load page
+                        time.sleep(SCROLL_PAUSE_TIME)
 
-            for x in soup.find_all('div',class_='commentItem__body sc-hyphenate'):
-                if len(x.find_all('a'))>1:
-                    comm.append(x.find_all('a')[1].get('title'))
-                else:
-                    comm.append(re.sub('\s+',' ', x.text.replace(';','')))
+                        # Calculate new scroll height and compare with last scroll height
+                        new_height = driver.execute_script("return document.body.scrollHeight")
+                        if new_height == last_height:
+                            break
+                        last_height = new_height
 
-            for x in soup.find_all('time',class_='relativeTime')[1:]:
-                comm_time.append(dt.strptime(x['datetime'], "%Y-%m-%dT%H:%M:%S.%fZ"))
-                url_list.append(url)
-                mix_name.append(mix_dict.get(url))
+                    soup =  bs.BeautifulSoup(driver.page_source, 'lxml')
+
+                    for x in soup.find_all('div',class_='commentItem__body sc-hyphenate'):
+                        if len(x.find_all('a'))>1:
+                            comm.append(x.find_all('a')[1].get('title'))
+                        else:
+                            comm.append(re.sub('\s+',' ', x.text.replace(';','')))
+
+                    for x in soup.find_all('time',class_='relativeTime')[1:]:
+                        comm_time.append(dt.strptime(x['datetime'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+                        url_list.append(url)
+                        mix_name.append(mix_dict.get(url))
+
+            except:
+                pass
 
         df = pd.DataFrame(zip(mix_name,url_list,comm,comm_time),columns=['Mix','MixURL','Comments','Comments Datetime'])
 
@@ -340,8 +349,10 @@ class SC_Discogs:
 
         df_mid = pd.concat([df,df_db],axis=0)
         df_mid = df_mid[df_mid['DiscogsURL']=='-']
-        df_mid.drop_duplicates(keep=False,inplace=True)
+        df_mid.drop_duplicates(subset=['SC_Mix/YT_Vid','Comment'],keep=False,inplace=True)
         df_mid.dropna(inplace=True)
+
+        df_mid.to_csv('df_new_added_comments.csv',index=False)
 
         links_dict = {}
 
@@ -358,7 +369,7 @@ class SC_Discogs:
                     if 'discogs' in item.find('a')['href']:
                         if 'master' in item.find('a')['href'] or 'release' in item.find('a')['href']:
                             links_dict[comment] = item.find('a')['href']
-            except (NoSuchElementException, StaleElementReferenceException,TypeError) as e:
+            except (NoSuchElementException, StaleElementReferenceException,TypeError,TimeoutException) as e:
                 print(e)
                 print("Error in finding comment number " + str(count) + "'s URL")
                 continue
@@ -391,15 +402,16 @@ class SC_Discogs:
         lowest_sold = []
         median_sold = []
         highest_sold = []
-        price_dict={}
+        price_dict= {}
 
         df = df[df['DiscogsURL']!='-']
+        df = df[df['DiscogsURL'].str.contains('https://www.discogs.com')]
 
         for url in df['DiscogsURL']:
 
             driver.get(url)
 
-            select = Select(driver.find_element_by_id('i18n_select'))
+            select = Select(WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "i18n_select"))))
             select.select_by_value('en')
 
             soup = bs.BeautifulSoup(driver.page_source, 'lxml')
@@ -478,5 +490,4 @@ if __name__ == '__main__':
     discogs_price = s.sc_get_discogs_prices()
     s.xls_export(discogs_price)
 
-#driver on peut le mettre dans init?
 #rajouter liens bandcamp/junodownload?
