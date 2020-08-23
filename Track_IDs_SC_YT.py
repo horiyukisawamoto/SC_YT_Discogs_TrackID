@@ -407,6 +407,10 @@ class SC_Discogs:
         df = df[df['DiscogsURL']!='-']
         df = df[df['DiscogsURL'].str.contains('https://www.discogs.com')]
 
+        #Instantiate driver once to accept Discogs Cookies & Privacy rules
+        driver.get('https://www.discogs.com')
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "onetrust-accept-btn-handler"))).click()
+
         for url in df['DiscogsURL']:
 
             driver.get(url)
