@@ -1,0 +1,216 @@
+{
+	"garglSchemaVersion": "1.0",
+	"moduleVersion": "1.0",
+	"moduleName": "googlesearch",
+	"moduleDescription": "Search on Google",
+	"functions": [
+		{
+			"_initiator": {
+				"type": "other"
+			},
+			"_priority": "VeryHigh",
+			"_resourceType": "document",
+			"request": {
+				"method": "GET",
+				"url": "https://www.google.com/search",
+				"httpVersion": "h3-29",
+				"headers": [
+					{
+						"description": "",
+						"name": ":method",
+						"value": "GET"
+					},
+					{
+						"description": "",
+						"name": ":authority",
+						"value": "www.google.com"
+					},
+					{
+						"description": "",
+						"name": ":scheme",
+						"value": "https"
+					},
+					{
+						"description": "",
+						"name": ":path",
+						"value": "/search?safe=strict&sxsrf=ALeKk01u6GUVhkYTtbfg_OuSJShILtT-MQ%3A1605081031216&source=hp&ei=x5erX7X2Ctnj-Abk1bXwBQ&q=what+are+capers&oq=what+are+capers&gs_lcp=CgZwc3ktYWIQAzIFCAAQyQMyAggAMgIIADICCAAyAggAMgIIADICCAAyAggAMgIIADICCAA6BwgjEOoCECc6BwguEOoCECc6DQguEMcBEK8BEOoCECc6BwguECcQkwI6BAgjECc6CAguEMkDEJECOgUILhCRAjoICAAQyQMQkQI6BQgAEJECOgcIABAUEIcCOgIILlCEZFiceWCErQFoA3AAeACAAZwBiAG7DpIBBDEuMTWYAQCgAQGqAQdnd3Mtd2l6sAEK&sclient=psy-ab&ved=0ahUKEwj19cvlgPrsAhXZMd4KHeRqDV4Q4dUDCAc&uact=5"
+					},
+					{
+						"description": "",
+						"name": "upgrade-insecure-requests",
+						"value": "1"
+					},
+					{
+						"description": "",
+						"name": "user-agent",
+						"value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.183 Safari/537.36"
+					},
+					{
+						"description": "",
+						"name": "accept",
+						"value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
+					},
+					{
+						"description": "",
+						"name": "x-client-data",
+						"value": "CJO2yQEIo7bJAQjBtskBCKmdygEIrMfKAQj1x8oBCOnIygEItMvKAQiBz8oBCNvVygEIl5rLAQjBmssBGPfAygEYisHKAQ=="
+					},
+					{
+						"description": "",
+						"name": "sec-fetch-site",
+						"value": "same-origin"
+					},
+					{
+						"description": "",
+						"name": "sec-fetch-mode",
+						"value": "navigate"
+					},
+					{
+						"description": "",
+						"name": "sec-fetch-user",
+						"value": "?1"
+					},
+					{
+						"description": "",
+						"name": "sec-fetch-dest",
+						"value": "document"
+					},
+					{
+						"description": "",
+						"name": "referer",
+						"value": "https://www.google.com/"
+					},
+					{
+						"description": "",
+						"name": "accept-encoding",
+						"value": "gzip, deflate, br"
+					},
+					{
+						"description": "",
+						"name": "accept-language",
+						"value": "en-US,en;q=0.9,fr;q=0.8"
+					}
+				],
+				"queryString": [
+					{
+						"description": "",
+						"name": "safe",
+						"value": "strict"
+					},
+					{
+						"description": "",
+						"name": "sxsrf",
+						"value": "ALeKk01u6GUVhkYTtbfg_OuSJShILtT-MQ:1605081031216"
+					},
+					{
+						"description": "",
+						"name": "source",
+						"value": "hp"
+					},
+					{
+						"description": "",
+						"name": "ei",
+						"value": "x5erX7X2Ctnj-Abk1bXwBQ"
+					},
+					{
+						"description": "",
+						"name": "q",
+						"value": "{query}"
+					},
+					{
+						"description": "",
+						"name": "oq",
+						"value": "{query}"
+					},
+					{
+						"description": "",
+						"name": "gs_lcp",
+						"value": "CgZwc3ktYWIQAzIFCAAQyQMyAggAMgIIADICCAAyAggAMgIIADICCAAyAggAMgIIADICCAA6BwgjEOoCECc6BwguEOoCECc6DQguEMcBEK8BEOoCECc6BwguECcQkwI6BAgjECc6CAguEMkDEJECOgUILhCRAjoICAAQyQMQkQI6BQgAEJECOgcIABAUEIcCOgIILlCEZFiceWCErQFoA3AAeACAAZwBiAG7DpIBBDEuMTWYAQCgAQGqAQdnd3Mtd2l6sAEK"
+					},
+					{
+						"description": "",
+						"name": "sclient",
+						"value": "psy-ab"
+					},
+					{
+						"description": "",
+						"name": "ved",
+						"value": "0ahUKEwj19cvlgPrsAhXZMd4KHeRqDV4Q4dUDCAc"
+					},
+					{
+						"description": "",
+						"name": "uact",
+						"value": "5"
+					}
+				]
+			},
+			"response": {
+				"headers": [
+					{
+						"name": "status"
+					},
+					{
+						"name": "content-type"
+					},
+					{
+						"name": "date"
+					},
+					{
+						"name": "expires"
+					},
+					{
+						"name": "cache-control"
+					},
+					{
+						"name": "strict-transport-security"
+					},
+					{
+						"name": "p3p"
+					},
+					{
+						"name": "content-encoding"
+					},
+					{
+						"name": "server"
+					},
+					{
+						"name": "x-xss-protection"
+					},
+					{
+						"name": "x-frame-options"
+					},
+					{
+						"name": "set-cookie"
+					},
+					{
+						"name": "set-cookie"
+					},
+					{
+						"name": "set-cookie"
+					},
+					{
+						"name": "set-cookie"
+					},
+					{
+						"name": "set-cookie"
+					},
+					{
+						"name": "set-cookie"
+					},
+					{
+						"name": "alt-svc"
+					}
+				],
+				"fields": [
+					{
+						"name": "URL",
+						"cssSelector": "div.kCrYT a"
+					}
+				]
+			},
+			"serverIPAddress": "172.217.31.132",
+			"functionName": "Search",
+			"functionDescription": ""
+		}
+	]
+}
