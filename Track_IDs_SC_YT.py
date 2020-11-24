@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime as dt
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -23,6 +23,9 @@ import json
 import downloader as dl
 from dateutil.relativedelta import relativedelta
 import datetime
+import gargl_google
+from selenium.webdriver.firefox.options import Options
+
 
 class SC_Discogs:
 
@@ -33,7 +36,7 @@ class SC_Discogs:
 
     def sc_search_artists(self):
 
-        driver = webdriver.Chrome(options=self.options)
+        driver = webdriver.Firefox(options=self.options)
 
         df = pd.read_excel("User_Inputs.xlsx")
         df = df['Artists_To_Search']
@@ -67,6 +70,7 @@ class SC_Discogs:
                     if artist.lower() in item.text.lower():
                         track_titles.append(item.text.strip())
                         track_urls.append('https://www.soundcloud.com' + item['href'])
+                        print('Getting ' + artist + ' : ' + item.text.strip())
 
         df_artists = pd.DataFrame(zip(track_titles,track_urls),columns=['Mix','MixURL'])
 
@@ -79,7 +83,7 @@ class SC_Discogs:
 
     def sc_search_pages(self):
 
-        driver = webdriver.Chrome(options=self.options)
+        driver = webdriver.Firefox(options=self.options)
 
         df = pd.read_excel("User_Inputs.xlsx")
         df = df['Artists&Podcast_Pages']
@@ -117,6 +121,7 @@ class SC_Discogs:
                 for item in soup.find_all('a', class_='soundTitle__title sc-link-dark'):
                     track_titles.append(item.text.strip())
                     track_urls.append('https://www.soundcloud.com' + item['href'])
+                    print('Getting ' + page_url + ' : ' + item.text.strip())
 
         df_pages = pd.DataFrame(zip(track_titles,track_urls),columns=['Mix','MixURL'])
 
@@ -129,12 +134,13 @@ class SC_Discogs:
 
     def sc_grab_mixes(self):
 
-        driver = webdriver.Chrome(options=self.options)
+        driver = webdriver.Firefox(options=self.options)
 
         mix_name = []
 
         df_mixes = pd.read_excel("User_Inputs.xlsx")
         df_mixes = df_mixes['Unique_Mixes']
+        df_mixes.dropna(inplace=True)
 
         for mix_url in df_mixes:
 
@@ -142,9 +148,9 @@ class SC_Discogs:
 
                 driver.get(mix_url)
 
-                soup = bs.BeautifulSoup(driver.page_source, 'lxml')
+                mix_name.append(WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div[2]/div[2]/div/div[2]/div/div[2]/div[2]/div/div/div[2]/span/span'))).text.strip())
 
-                mix_name.append(soup.find('span', class_='soundTitle__title sc-font g-type-shrinkwrap-inline g-type-shrinkwrap-large-primary').text.strip())
+                print('Getting ' + mix_url)
 
         df_mixes = pd.DataFrame(zip(mix_name,df_mixes),columns=['Mix','MixURL'])
 
@@ -162,7 +168,7 @@ class SC_Discogs:
 
     def sc_get_comments(self,df):
 
-        driver = webdriver.Chrome(options=self.options)
+        driver = webdriver.Firefox(options=self.options)
 
         mix_name = []
         url_list = []
@@ -173,46 +179,53 @@ class SC_Discogs:
 
         for url in df['MixURL']:
 
-            driver.get(url)
-
-            inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[4]/section/div/div[3]/div[3]/div/div[3]/span[2]")))
-
-            SCROLL_PAUSE_TIME = 1.7
-
-            #exclude tracks that are below 25 mins
             try:
-                if (len(inputElement.text) <= 5 and dt.strptime(inputElement.text, '%M:%S').time() > dt.strptime("25:00", '%M:%S').time()) or len(inputElement.text) > 5:
 
-                    # Get scroll height
-                    last_height = driver.execute_script("return document.body.scrollHeight")
+                driver.get(url)
 
-                    while True:
-                        # Scroll down to bottom
-                        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[4]/section/div/div[3]/div[3]/div/div[3]/span[2]")))
 
-                        # Wait to load page
-                        time.sleep(SCROLL_PAUSE_TIME)
+                SCROLL_PAUSE_TIME = 1.7
 
-                        # Calculate new scroll height and compare with last scroll height
-                        new_height = driver.execute_script("return document.body.scrollHeight")
-                        if new_height == last_height:
-                            break
-                        last_height = new_height
+                #exclude tracks that are below 25 mins
+                try:
+                    if (len(inputElement.text) <= 5 and dt.strptime(inputElement.text, '%M:%S').time() > dt.strptime("25:00", '%M:%S').time()) or len(inputElement.text) > 5:
 
-                    soup =  bs.BeautifulSoup(driver.page_source, 'lxml')
+                        # Get scroll height
+                        last_height = driver.execute_script("return document.body.scrollHeight")
 
-                    for x in soup.find_all('div',class_='commentItem__body sc-hyphenate'):
-                        if len(x.find_all('a'))>1:
-                            comm.append(x.find_all('a')[1].get('title'))
-                        else:
-                            comm.append(re.sub('\s+',' ', x.text.replace(';','')))
+                        while True:
+                            # Scroll down to bottom
+                            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
-                    for x in soup.find_all('time',class_='relativeTime')[1:]:
-                        comm_time.append(dt.strptime(x['datetime'], "%Y-%m-%dT%H:%M:%S.%fZ"))
-                        url_list.append(url)
-                        mix_name.append(mix_dict.get(url))
+                            # Wait to load page
+                            time.sleep(SCROLL_PAUSE_TIME)
 
-            except:
+                            # Calculate new scroll height and compare with last scroll height
+                            new_height = driver.execute_script("return document.body.scrollHeight")
+                            if new_height == last_height:
+                                break
+                            last_height = new_height
+
+                        soup =  bs.BeautifulSoup(driver.page_source, 'lxml')
+
+                        for x in soup.find_all('div',class_='commentItem__body sc-hyphenate'):
+                            if len(x.find_all('a'))>1:
+                                comm.append(x.find_all('a')[1].get('title'))
+                            else:
+                                comm.append(re.sub('\s+',' ', x.text.replace(';','')))
+
+                        for x in soup.find_all('time',class_='relativeTime')[1:]:
+                            comm_time.append(dt.strptime(x['datetime'], "%Y-%m-%dT%H:%M:%S.%fZ"))
+                            url_list.append(url)
+                            mix_name.append(mix_dict.get(url))
+
+                        print('Getting comments for ' + url)
+
+                except:
+                    pass
+
+            except (NoSuchElementException, StaleElementReferenceException,TypeError,TimeoutException):
                 pass
 
         df = pd.DataFrame(zip(mix_name,url_list,comm,comm_time),columns=['Mix','MixURL','Comments','Comments Datetime'])
@@ -226,7 +239,7 @@ class SC_Discogs:
 
     def yt_get_comments(self):
 
-        driver = webdriver.Chrome(options=self.options)
+        driver = webdriver.Firefox(options=self.options)
 
         df = pd.read_excel('User_Inputs.xlsx')
         df = df['YT_Artist_Searches']
@@ -237,6 +250,7 @@ class SC_Discogs:
         yt_title = []
         yt_comments = []
         yt_datetime = []
+
 
         for artist in df:
 
@@ -250,12 +264,16 @@ class SC_Discogs:
 
             for item in soup.find_all('a', class_='yt-simple-endpoint style-scope ytd-video-renderer'):
                 if artist.lower() in item['title'].lower():
-                    dl.main(['-y'+item['href'].replace('/watch?v=',''),'-oyt_comments.json'])
-                    for line in open('yt_comments.json', 'r',encoding='utf-8'):
-                        yt_comments.append(json.loads(line.replace(';',""))['text'])
-                        yt_datetime.append(json.loads(line.replace(';',""))['time'])
-                        yt_url.append('https://www.youtube.com/' + item['href'])
-                        yt_title.append(item['title'])
+                    try:
+                        dl.main(['-y'+item['href'].replace('/watch?v=',''),'-oyt_comments.json'])
+                        for line in open('yt_comments.json', 'r',encoding='utf-8'):
+                            yt_comments.append(json.loads(line.replace(';',""))['text'])
+                            yt_datetime.append(json.loads(line.replace(';',""))['time'])
+                            yt_url.append('https://www.youtube.com/' + item['href'])
+                            yt_title.append(item['title'])
+
+                    except:
+                        pass
 
         df_yt = pd.DataFrame(zip(yt_title,yt_url,yt_comments,yt_datetime),columns=['Mix','MixURL','Comments','Comments Datetime'])
 
@@ -338,7 +356,10 @@ class SC_Discogs:
 
     def sc_get_discogs_url(self):
 
-        driver = webdriver.Chrome(options=self.options)
+        ARG_GTF = 'googlesearch.gtf'
+
+        with open(ARG_GTF, 'r') as conf_file:
+            g = gargl_google.gargl(json.load(conf_file))
 
         df = pd.read_csv('df_get_comments.csv')
 
@@ -358,21 +379,17 @@ class SC_Discogs:
 
         for count,comment in enumerate(df_mid['Comment'],1):
             try:
-                driver.get('https://www.google.com')
-                inputElement = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "q")))
-                inputElement.send_keys(comment)
-                inputElement.send_keys(Keys.ENTER)
-                time.sleep(0.7)
-                soup = bs.BeautifulSoup(driver.page_source, 'lxml')
-
-                for item in soup.find_all('div', class_='r'):
-                    if 'discogs' in item.find('a')['href']:
-                        if 'master' in item.find('a')['href'] or 'release' in item.find('a')['href']:
-                            links_dict[comment] = item.find('a')['href']
+                for url in g.Search({'query': comment})[0]['URL']:
+                    if 'discogs' in url.get('href'):
+                        if ('/release/' or '/master/') in url.get('href'):
+                            if '/sell/' not in url.get('href'):
+                                links_dict[comment] = re.search('q=(.*)&sa', url.get('href')).group(1)
             except (NoSuchElementException, StaleElementReferenceException,TypeError,TimeoutException) as e:
                 print(e)
                 print("Error in finding comment number " + str(count) + "'s URL")
                 continue
+
+            time.sleep(0.5)
 
             if count % 10 == 0:
                 print(count, 'comments out of', len(df_mid['Comment']),'at:',time.strftime("%d-%m-%Y %H:%M:%S"))
@@ -384,16 +401,13 @@ class SC_Discogs:
 
         df_final.to_csv('df_get_comments_discogs.csv',index=False)
 
-        driver.close()
-        driver.quit()
-
         print('Done getting Discogs URLs!')
 
         return df_final
 
     def sc_get_discogs_prices(self):
 
-        driver = webdriver.Chrome(options=self.options)
+        driver = webdriver.Firefox(options=self.options)
 
         df = pd.read_csv('df_get_comments_discogs.csv')
 
@@ -411,39 +425,46 @@ class SC_Discogs:
         driver.get('https://www.discogs.com')
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "onetrust-accept-btn-handler"))).click()
 
-        for url in df['DiscogsURL']:
+        for count,url in enumerate(df['DiscogsURL'],1):
 
-            driver.get(url)
+            try:
 
-            select = Select(WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "i18n_select"))))
-            select.select_by_value('en')
+                driver.get(url)
 
-            soup = bs.BeautifulSoup(driver.page_source, 'lxml')
+                select = Select(WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "i18n_select"))))
+                select.select_by_value('en')
 
-            if soup.find_all('span', class_='marketplace_for_sale_count'):
-                for item in soup.find_all('span', class_='marketplace_for_sale_count'):
-                    for_sale.append(item.text.strip())
-            else:
-                for_sale.append('-')
+                soup = bs.BeautifulSoup(driver.page_source, 'lxml')
 
-            if soup.find_all('li', class_='last_sold'):
-                for item in soup.find_all('li', class_='last_sold'):
-                    last_sold.append(item.text.split(':')[1].strip())
-            else:
-                    last_sold.append('-')
+                if soup.find_all('span', class_='marketplace_for_sale_count'):
+                    for item in soup.find_all('span', class_='marketplace_for_sale_count'):
+                        for_sale.append(item.text.strip())
+                else:
+                    for_sale.append('-')
 
-            if soup.find_all('ul', class_='last'):
-                for item in soup.find_all('ul', class_='last'):
-                    lowest_sold.append(item.find_all('li')[1].text.split(':')[1].strip())
-                    median_sold.append(item.find_all('li')[2].text.split(':')[1].strip())
-                    highest_sold.append(item.find_all('li')[3].text.split(':')[1].strip())
-            else:
-                    lowest_sold.append('-')
-                    median_sold.append('-')
-                    highest_sold.append('-')
+                if soup.find_all('li', class_='last_sold'):
+                    for item in soup.find_all('li', class_='last_sold'):
+                        last_sold.append(item.text.split(':')[1].strip())
+                else:
+                        last_sold.append('-')
 
-        driver.close()
-        driver.quit()
+                if soup.find_all('ul', class_='last'):
+                    for item in soup.find_all('ul', class_='last'):
+                        lowest_sold.append(item.find_all('li')[1].text.split(':')[1].strip())
+                        median_sold.append(item.find_all('li')[2].text.split(':')[1].strip())
+                        highest_sold.append(item.find_all('li')[3].text.split(':')[1].strip())
+                else:
+                        lowest_sold.append('-')
+                        median_sold.append('-')
+                        highest_sold.append('-')
+
+            except (NoSuchElementException, StaleElementReferenceException,TypeError,TimeoutException) as e:
+                print(e)
+                print("Error in finding DiscogsURL " + str(count))
+                continue
+
+            if count % 10 == 0:
+                print(count, 'DiscogsURL out of', len(df['DiscogsURL']),'at:',time.strftime("%d-%m-%Y %H:%M:%S"))
 
         df['ForSale'] = for_sale
         df['LastSold'] = last_sold
@@ -452,6 +473,9 @@ class SC_Discogs:
         df['HighestSold'] = highest_sold
 
         df = df.sort_values(by=['Comment_Time'], ascending=False)
+
+        driver.close()
+        driver.quit()
 
         print('Done getting Discogs Prices!')
 
@@ -481,6 +505,8 @@ class SC_Discogs:
                 worksheet.write(0, col_num, value, header_format)
 
             writer.save()
+
+        print('Excel created!')
 
 if __name__ == '__main__':
 
