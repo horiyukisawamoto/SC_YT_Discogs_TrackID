@@ -461,6 +461,11 @@ class SC_Discogs:
             except (NoSuchElementException, StaleElementReferenceException,TypeError,TimeoutException) as e:
                 print(e)
                 print("Error in finding DiscogsURL " + str(count))
+                for_sale.append('?')
+                last_sold.append('?')
+                lowest_sold.append('?')
+                median_sold.append('?')
+                highest_sold.append('?')
                 continue
 
             if count % 10 == 0:
